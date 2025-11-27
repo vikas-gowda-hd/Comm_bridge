@@ -11,6 +11,7 @@ function Intro() {
           >
             <div className="h2 section-heading">We've what you need!</div>
             <div className="col-lg-4 divider my-2" />
+            
             <div className="text-center normal-text">
               A comprehensive and aesthetic Indian Sign Language toolkit. A
               minimalist yet informative interface. Wide range of features

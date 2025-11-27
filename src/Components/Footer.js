@@ -9,7 +9,7 @@ function Footer() {
                 <div className="container">
                     <div className="row py-4 d-flex justify-content-center align-items-center">
                         <div className="col-md-6 col-lg-5 text-center footer-text text-white">
-                            Check out our <a href="https://github.com/shamithakrishna1110-tech/Sensebridge-nexus" className='footer-link'>Github repo</a> for more information!
+                            Check out our <a href="https://github.com/vikas-gowda-hd/Comm_bridge.git" className='footer-link'>Github repo</a> for more information!
                         </div>
                     </div>
                 </div>
@@ -35,16 +35,21 @@ function Footer() {
                             <h6 className="text-uppercase font-weight-bold">Useful links</h6>
                             <hr className="deep-purple accent-2 mb-4 mt-0 d-inline-block mx-auto" style={{width:'60px'}} />
                             <p><Link to='/sensebridge-nexus/home' className='footer-link'>Home</Link></p>
-                            <p><a href="https://github.com/shamithakrishna1110-tech/Sensebridge-nexus" className='footer-link'>Github repo</a></p>
+                            <p><a href="https://github.com/vikas-gowda-hd/Comm_bridge.git" className='footer-link'>Github repo</a></p>
                         </div>
 
                         <div className="col-md-4 col-lg-3 col-xl-3 mx-auto mb-md-0 mb-4">
                             <h6 className="text-uppercase font-weight-bold">Contact</h6>
                             <hr className="deep-purple accent-2 mb-4 mt-0 d-inline-block mx-auto" style={{width:'60px'}}/>
                             <p><i className="fa fa-lg fa-home me-3 ms-0"></i><span className='footer-text'> BGS College of Engineering and Technology</span></p>
-                            <p><i className="fa fa-envelope me-3 ms-0"></i><span className='footer-text'> 1mp23ad063@bgscet.ac.in </span> </p>
-                            <p><i className="fa fa-envelope me-3 ms-0"></i><span className='footer-text'> 1mp24ad401@bgscet.ac.in </span> </p>
-
+                            <p><i className="fa fa-envelope me-3 ms-0"></i><span className='footer-text'> vikasgowdahd11@gmail.com </span> </p>
+                            <p><i className="fa fa-envelope me-3 ms-0"></i><span className='footer-text'> selvamani.a11@gmail.com </span> </p>
+                            <p><i className="fa fa-envelope me-3 ms-0"></i><span className='footer-text'> anupnraykar@gmail.com </span> </p>
+                            <p><i className="fa fa-phone me-3 ms-0"></i><span className='footer-text'> + 91 7624919952 </span></p>
+                            <p><i className="fa fa-phone me-3 ms-0"></i><span className='footer-text'> + 91 8088701592 </span></p>
+                            <p><i className="fa fa-phone me-3 ms-0"></i><span className='footer-text'> + 91 9141748455 </span></p>
+                            
+                            
                         </div>
                     </div>
                 </div>

@@ -1,13 +1,53 @@
+/* ------------------------------------------------------ */
+/* Global Styling (Safe to update – Won't break anything) */
+/* ------------------------------------------------------ */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  padding: 0;
+  background: #0f0f0f; /* Clean premium dark background */
+  color: #ffffff;
+  font-family: 'Poppins', sans-serif !important;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
+/* Smooth fade animation for the whole site */
+html {
+  scroll-behavior: smooth;
+}
+
+* {
+  transition: 0.25s ease-in-out;
+}
+
+/* Code blocks */
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: 'Fira Code', 'Menlo', 'Monaco', 'Consolas', 'Courier New', monospace;
+  color: #4dd0e1;
+}
+
+/* Global scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #4f8df7, #a855f7);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+/* Global container wrapper (used for giving consistent spacing) */
+.global-container {
+  max-width: 1300px;
+  margin: auto;
+  padding: 20px;
 }

@@ -18,6 +18,9 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 
+// CAMERA INPUT
+import CameraSignRecognizer from "../CameraSignRecognizer";
+
 function Convert() {
   const [text, setText] = useState("");
   const [bot, setBot] = useState(ybot);
@@ -36,8 +39,10 @@ function Convert() {
     resetTranscript,
   } = useSpeechRecognition();
 
+  // ================================
+  // INITIALIZE 3D MODEL
+  // ================================
   useEffect(() => {
-
     ref.flag = false;
     ref.pending = false;
 
@@ -50,14 +55,16 @@ function Convert() {
     const spotLight = new THREE.SpotLight(0xffffff, 2);
     spotLight.position.set(0, 5, 5);
     ref.scene.add(spotLight);
+
     ref.renderer = new THREE.WebGLRenderer({ antialias: true });
 
     ref.camera = new THREE.PerspectiveCamera(
-        30,
-        window.innerWidth * 0.57 / (window.innerHeight - 70),
-        0.1,
-        1000
-    )
+      30,
+      window.innerWidth * 0.57 / (window.innerHeight - 70),
+      0.1,
+      1000
+    );
+
     ref.renderer.setSize(window.innerWidth * 0.57, window.innerHeight - 70);
 
     document.getElementById("canvas").innerHTML = "";
@@ -71,164 +78,201 @@ function Convert() {
       bot,
       (gltf) => {
         gltf.scene.traverse((child) => {
-          if ( child.type === 'SkinnedMesh' ) {
+          if (child.type === 'SkinnedMesh') {
             child.frustumCulled = false;
           }
-    });
+        });
+
         ref.avatar = gltf.scene;
         ref.scene.add(ref.avatar);
         defaultPose(ref);
-      },
-      (xhr) => {
-        console.log(xhr);
       }
     );
 
   }, [ref, bot]);
 
+  // ================================
+  // ANIMATION ENGINE
+  // ================================
   ref.animate = () => {
-    if(ref.animations.length === 0){
-        ref.pending = false;
-      return ;
+    if (ref.animations.length === 0) {
+      ref.pending = false;
+      return;
     }
+
     requestAnimationFrame(ref.animate);
-    if(ref.animations[0].length){
-        if(!ref.flag) {
-          if(ref.animations[0][0]==='add-text'){
-            setText(text + ref.animations[0][1]);
-            ref.animations.shift();
-          }
-          else{
-            for(let i=0;i<ref.animations[0].length;){
-              let [boneName, action, axis, limit, sign] = ref.animations[0][i]
-              if(sign === "+" && ref.avatar.getObjectByName(boneName)[action][axis] < limit){
-                  ref.avatar.getObjectByName(boneName)[action][axis] += speed;
-                  ref.avatar.getObjectByName(boneName)[action][axis] = Math.min(ref.avatar.getObjectByName(boneName)[action][axis], limit);
-                  i++;
-              }
-              else if(sign === "-" && ref.avatar.getObjectByName(boneName)[action][axis] > limit){
-                  ref.avatar.getObjectByName(boneName)[action][axis] -= speed;
-                  ref.avatar.getObjectByName(boneName)[action][axis] = Math.max(ref.avatar.getObjectByName(boneName)[action][axis], limit);
-                  i++;
-              }
-              else{
-                  ref.animations[0].splice(i, 1);
-              }
+
+    if (ref.animations[0].length) {
+
+      if (!ref.flag) {
+        if (ref.animations[0][0] === 'add-text') {
+          setText(prev => prev + ref.animations[0][1]);
+          ref.animations.shift();
+        } else {
+          for (let i = 0; i < ref.animations[0].length;) {
+            let [boneName, action, axis, limit, sign] = ref.animations[0][i];
+            const bone = ref.avatar.getObjectByName(boneName)[action];
+
+            if (sign === "+" && bone[axis] < limit) {
+              bone[axis] += speed;
+              bone[axis] = Math.min(bone[axis], limit);
+              i++;
+            }
+            else if (sign === "-" && bone[axis] > limit) {
+              bone[axis] -= speed;
+              bone[axis] = Math.max(bone[axis], limit);
+              i++;
+            }
+            else {
+              ref.animations[0].splice(i, 1);
             }
           }
         }
-    }
-    else {
+      }
+
+    } else {
       ref.flag = true;
-      setTimeout(() => {
-        ref.flag = false
-      }, pause);
+      setTimeout(() => { ref.flag = false; }, pause);
       ref.animations.shift();
     }
+
     ref.renderer.render(ref.scene, ref.camera);
-  }
+  };
 
-  const sign = (inputRef) => {
-    
-    var str = inputRef.current.value.toUpperCase();
-    var strWords = str.split(' ');
-    setText('')
+  // ================================
+  // TEXT → AVATAR PROCESSOR
+  // ================================
+  const processString = (str) => {
+    if (!str) return;
 
-    for(let word of strWords){
-      if(words[word]){
-        ref.animations.push(['add-text', word+' ']);
+    const uppercase = str.toUpperCase().trim();
+    const parts = uppercase.split(" ");
+
+    setText("");
+
+    for (let word of parts) {
+      if (words[word]) {
+        ref.animations.push(["add-text", word + " "]);
         words[word](ref);
-        
-      }
-      else{
-        for(const [index, ch] of word.split('').entries()){
-          if(index === word.length-1)
-            ref.animations.push(['add-text', ch+' ']);
-          else 
-            ref.animations.push(['add-text', ch]);
-          alphabets[ch](ref);
-          
+      } else {
+        for (const [index, ch] of word.split("").entries()) {
+          ref.animations.push(["add-text", index === word.length - 1 ? ch + " " : ch]);
+          if (alphabets[ch]) alphabets[ch](ref);
         }
       }
     }
-  }
 
-  const startListening = () =>{
-    SpeechRecognition.startListening({continuous: true});
-  }
+    if (!ref.pending) {
+      ref.pending = true;
+      ref.animate();
+    }
+  };
 
-  const stopListening = () =>{
-    SpeechRecognition.stopListening();
-  }
+  const sign = (inputRef) => {
+    processString(inputRef.current.value);
+  };
 
+  const startListening = () => SpeechRecognition.startListening({ continuous: true });
+  const stopListening = () => SpeechRecognition.stopListening();
+
+  // ================================
+  // CAMERA → AVATAR MAPPING
+  // ================================
+  const avatarMap = {
+    HELLO: "HELLO",
+    THANKYOU: "THANK YOU",
+    YES: "YES",
+    NO: "NO",
+    MIDDLEFINGER: "MIDDLEFINGER",
+  };
+
+  const handleCameraRecognized = (label) => {
+    if (!label) return;
+
+    const upper = label.trim().toUpperCase();
+
+    setText(prev => prev ? prev + " " + upper : upper);
+
+    const mapped = avatarMap[upper];
+    processString(mapped || upper);
+  };
+
+  // ================================
+  // UI
+  // ================================
   return (
     <div className='container-fluid'>
       <div className='row'>
+
+        {/* LEFT PANEL */}
         <div className='col-md-3'>
-          <label className='label-style'>
-            Processed Text
-          </label>
+
+          <label className='label-style'>Processed Text</label>
           <textarea rows={3} value={text} className='w-100 input-style' readOnly />
-          <label className='label-style'>
-            Speech Recognition: {listening ? 'on' : 'off'}
-          </label>
+
+          <label className='label-style'>Speech Recognition: {listening ? 'on' : 'off'}</label>
+
           <div className='space-between'>
             <button className="btn btn-primary btn-style w-33" onClick={startListening}>
-              Mic On <i className="fa fa-microphone"/>
+              Mic On <i className="fa fa-microphone" />
             </button>
+
             <button className="btn btn-primary btn-style w-33" onClick={stopListening}>
-              Mic Off <i className="fa fa-microphone-slash"/>
+              Mic Off <i className="fa fa-microphone-slash" />
             </button>
+
             <button className="btn btn-primary btn-style w-33" onClick={resetTranscript}>
               Clear
             </button>
           </div>
-          <textarea rows={3} ref={textFromAudio} value={transcript} placeholder='Speech input ...' className='w-100 input-style' />
-          <button onClick={() => {sign(textFromAudio)}} className='btn btn-primary w-100 btn-style btn-start'>
+
+          <textarea
+            rows={3}
+            ref={textFromAudio}
+            value={transcript}
+            placeholder='Speech input ...'
+            className='w-100 input-style'
+            readOnly
+          />
+
+          <button onClick={() => { sign(textFromAudio) }} className='btn btn-primary w-100 btn-style btn-start'>
             Start Animations
           </button>
-          <label className='label-style'>
-            Text Input
+
+          {/* CAMERA INPUT */}
+          <label className='label-style' style={{ marginTop: "20px" }}>
+            Camera Sign Input
           </label>
+
+          <CameraSignRecognizer onRecognized={handleCameraRecognized} />
+
+          <label className='label-style'>Text Input</label>
           <textarea rows={3} ref={textFromInput} placeholder='Text input ...' className='w-100 input-style' />
-          <button onClick={() => {sign(textFromInput)}} className='btn btn-primary w-100 btn-style btn-start'>
+
+          <button onClick={() => { sign(textFromInput) }} className='btn btn-primary w-100 btn-style btn-start'>
             Start Animations
           </button>
         </div>
+
+        {/* CANVAS */}
         <div className='col-md-7'>
-          <div id='canvas'/>
+          <div id='canvas' />
         </div>
+
+        {/* RIGHT PANEL */}
         <div className='col-md-2'>
-          <p className='bot-label'>
-            Select Avatar
-          </p>
-          <img src={xbotPic} className='bot-image col-md-11' onClick={()=>{setBot(xbot)}} alt='Avatar 1: XBOT'/>
-          <img src={ybotPic} className='bot-image col-md-11' onClick={()=>{setBot(ybot)}} alt='Avatar 2: YBOT'/>
-          <p className='label-style'>
-            Animation Speed: {Math.round(speed*100)/100}
-          </p>
-          <Slider
-            axis="x"
-            xmin={0.05}
-            xmax={0.50}
-            xstep={0.01}
-            x={speed}
-            onChange={({ x }) => setSpeed(x)}
-            className='w-100'
-          />
-          <p className='label-style'>
-            Pause time: {pause} ms
-          </p>
-          <Slider
-            axis="x"
-            xmin={0}
-            xmax={2000}
-            xstep={100}
-            x={pause}
-            onChange={({ x }) => setPause(x)}
-            className='w-100'
-          />
+          <p className='bot-label'>Select Avatar</p>
+
+          <img src={xbotPic} className='bot-image col-md-11' onClick={() => setBot(xbot)} alt='Avatar 1: XBOT' />
+          <img src={ybotPic} className='bot-image col-md-11' onClick={() => setBot(ybot)} alt='Avatar 2: YBOT' />
+
+          <p className='label-style'>Animation Speed: {Math.round(speed * 100) / 100}</p>
+          <Slider axis="x" xmin={0.05} xmax={0.50} xstep={0.01} x={speed} onChange={({ x }) => setSpeed(x)} className='w-100' />
+
+          <p className='label-style'>Pause time: {pause} ms</p>
+          <Slider axis="x" xmin={0} xmax={2000} xstep={100} x={pause} onChange={({ x }) => setPause(x)} className='w-100' />
         </div>
+
       </div>
     </div>
   )
